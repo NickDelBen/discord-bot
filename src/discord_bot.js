@@ -66,10 +66,15 @@ class DiscordBot {
 					break
 				}
 			}
-			// If we found a result we can reply
-			if (handler_result.result) {
-				return handler_result.sendMessage(this.client, message.channel)
-				// return message.channel.sendMessage(handler_result.response)
+			// Check if the result was an array
+			if (! (handler_result instanceof Array)) {
+				handler_result = [ handler_result ]
+			}
+			for (const handler_message of handler_result) {
+				// If we found a result we can reply
+				if (handler_message.result) {
+					return handler_message.sendMessage(this.client, message.channel)
+				}
 			}
 		}
 	}
