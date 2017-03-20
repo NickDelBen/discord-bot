@@ -1,0 +1,12 @@
+{
+	"extra_settings": {
+		"use": true,
+		"location": "/var/app_conf/config.json"
+	},
+	"gods": [],
+	"metagroups": {
+		"users": ["@everyone", "bots", "Admin"],
+		"power": ["Admin"]
+	},
+	"prefix": "#>"
+}

@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+
+  # node.js container that will serve app
+  server:
+    build:
+      context: .
+      dockerfile: node.dockerfile
+    depends_on:
+      - database
+    volumes:
+      - .:/var/www/
+      - ../logs/:/var/logs/
+      - ../conf/app/:/var/app_conf/
+    networks:
+      - discord_bot
+
+  # mongodb container
+  database:
+    build:
+      context: .
+      dockerfile: mongo.dockerfile
+    volumes:
+      - ../db/mongo/:/data/db/
+      - ../logs/:/var/logs/
+    networks:
+      - discord_bot
+
+networks:
+  discord_bot:
+      driver: bridge
