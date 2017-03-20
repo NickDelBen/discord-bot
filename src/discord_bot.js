@@ -18,7 +18,7 @@ class DiscordBot {
 	}
 
 	// Add the specified commands to the command set
-	addHandler (handler) {
+	addHandler (handler, type) {
 		this.handlers.push(handler)
 	}
 
@@ -34,21 +34,47 @@ class DiscordBot {
 
 	// Handles the specified message
 	async handle_message (message) {
-		// Build list fo roles for this user
-		let user_roles = []
-		for (let [key, value] of message.member.roles) {
-			user_roles.push(value.name)
-		}
 		// Ignore messages from this user
 		if (message.author.id == this.client.user.id) {
 			return
 		}
+		// Build list fo roles for this user
+		let user_roles = []
+		// Add to the roles if the message type was channel-based
+		if (message.channel.type == "text") {
+			for (let [key, value] of message.member.roles) {
+				user_roles.push(value.name)
+			}
+		}
 		// Hit the message with each location
 		for (const handler of this.handlers) {
-			const handler_result = (await handler.handleMessage(message.content, settings.prefix, user_roles))
-			// If we found a result we can reply
-			if (handler_result.result) {
-				return message.channel.sendMessage(handler_result.response)
+			let handler_result = { result: false }
+			// Check the type of channel the message came in on
+			switch (message.channel.type) {
+				// Check for text messages
+				case "text": {
+					if (handler.messageTypes.includes("text")) {
+						handler_result = (await handler.handleText(message.content, settings.prefix, user_roles, message.author.id))
+					}
+					break
+				}
+				// Check for dms
+				case "dm": {
+					if (handler.messageTypes.includes("dm")) {
+						handler_result = (await handler.handleDM(message.content, settings.prefix, message.author.id))
+					}
+					break
+				}
+			}
+			// Check if the result was an array
+			if (! (handler_result instanceof Array)) {
+				handler_result = [ handler_result ]
+			}
+			for (const handler_message of handler_result) {
+				// If we found a result we can reply
+				if (handler_message.result) {
+					return handler_message.sendMessage(this.client, message.channel)
+				}
 			}
 		}
 	}

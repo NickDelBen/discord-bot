@@ -2,11 +2,22 @@
 import db_mongo from "./db_mongo"
 import { MessageResponse } from "./message_response"
 import { arr_com } from "./helpers"
+import { block_text } from "./discord_messages"
+
+// Help text for the pattern matcher
+const pattern_help = function () {
+	return block_text(
+`Pattern Matching module by MartianProblems
+Responds with specified messages when patterns are detected
+    pm help                          [DM/channel] This help text
+    pm add "<pattern>" "<response>"  [DM/channel] Create a new pattern-response pair
+    pm rm "<pattern>"                [DM/channel] Remove an existing pattern-response pair`)
+}
 
 class PatternMatcher {
-
 	// Create a new responder from the specified colelction
-	constructor (collection_name, add_prefix, replace_for, modify_for, show_errors) {
+	constructor (collection_name, add_prefix, replace_for, modify_for, gods, show_errors) {
+		this.gods = gods
 		this.replacers = replace_for
 		this.modifiers = modify_for
 		this.add_prefix = add_prefix
@@ -14,7 +25,7 @@ class PatternMatcher {
 		// Store the collection name for further use
 		this.collection = collection_name
 		// Store the possible responses
-		this.patterns = []
+		this.patterns = {}
 		// Create the collection to ensure it exists
 		db_mongo.create_collection(collection_name)
 		try {
@@ -36,31 +47,38 @@ class PatternMatcher {
     	const selection = await collection.find().toArray()
     	// Create a session object from the result
    		for (const selection_i of selection) {
-   			this.patterns.push({
+   			this.patterns[target] = {
    				target: selection_i.target,
    				exp: new RegExp(selection_i.target),
    				response: selection_i.response
-   			})
+   			}
     	}
 	}
 
-	// Handles the message
-	handleMessage (message, prefix, roles) {
-		let responses = []
+	// Returns the types of messages the bot can handle
+	get messageTypes () {
+		return ["text", "dm"]
+	}
+
+	// Handles a text message
+	handleText (message, prefix, roles, author_id) {
 		// Check if this is an add command
-		if ((!(message.startsWith(`${prefix} ${this.add_prefix}`))) && arr_com(this.replacers, roles)) {
-			// Check if this message is one of the targets
-			return this.checkMessage(message)
-		}
-		// Ensure user has permissions
-		if (! (arr_com(this.modifiers, roles))) {
-			return new MessageResponse(this.errors, `You do not have permission to add reactions`, false)
+		if (!(message.startsWith(`${prefix} ${this.add_prefix}`))) {
+			if (arr_com(this.replacers, roles)) {
+				// Check if this message is one of the targets
+				return this.checkMessage(message)
+			}
+			return new MessageResponse(false, "Unrelated", false)			
 		}
 		// Split the message like command line args
 		const split_message = message.match(/(".*?"|[^\s]+)+(?=\s*|\s*$)/g)
 		// Check if this is a blank or help command
 		if (split_message.length == 2 || split_message[2] == "help") {
-			return new MessageResponse(true, "this is some help text - nick", false)
+			return new MessageResponse(true, pattern_help(), false)
+		}
+		// Ensure user has permissions
+		if (! (arr_com(this.modifiers, roles) || this.gods.includes(author_id))) {
+			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
 		}
 		// Check if this is an add command
 		if (split_message[2] == "add" && split_message.length >= 5) {
@@ -72,13 +90,41 @@ class PatternMatcher {
 		}
 		// Reached command error
 		return new MessageResponse(this.errors, `Command \"${prefix} ${this.add_prefix} ${split_message[2]}\" with ${split_message.length-3} parameters not found`, false)
-		
+	}
+
+	// Handle a dm
+	handleDM (message, prefix, author_id) {
+		// If it is not a valid command ignore
+		if (!(message.startsWith(`${prefix} ${this.add_prefix}`))) {
+			return new MessageResponse(false, "Unrelated", false)		
+		}
+		// Split the message like command line args
+		const split_message = message.match(/(".*?"|[^\s]+)+(?=\s*|\s*$)/g)
+		// Check if this is a blank or help command
+		if (split_message.length == 2 || split_message[2] == "help") {
+			return new MessageResponse(true, pattern_help(), false)
+		}
+		// Ensure user has permissions
+		if (! this.gods.includes(author_id)) {
+			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
+		}
+		// Check if this is an add command
+		if (split_message[2] == "add" && split_message.length >= 5) {
+			return this.addMessage(split_message[3].replace(/['"']+/g, ''), split_message[4].replace(/['"']+/g, ''))
+		}
+		// Check if this is a remove command
+		if (split_message[2] == "rm" && split_message.length >= 4) {
+			return this.removeMessage(split_message[3].replace(/['"']+/g, ''))
+		}
+		// Reached command error
+		return new MessageResponse(this.errors, `Command \"${prefix} ${this.add_prefix} ${split_message[2]}\" with ${split_message.length-3} parameters not found`, false)
 	}
 
 	// Check if a message should be replaced by the responder
 	checkMessage (message) {
 		// Hit each of the candidates
-		for (const candidate of this.patterns) {
+		for (const candidate_i in this.patterns) {
+			const candidate = this.patterns[candidate_i]
 			// Check for a match
 			if (candidate.exp.test(message)) {
 				return new MessageResponse(true, candidate.response, false)
@@ -92,18 +138,15 @@ class PatternMatcher {
 		// Get the collection from the database
         const collection = db_mongo.get().collection(this.collection)
         try {
+        	// Search for if pattern in database
             const search_result = (await collection.findOne({ target: target }))
             if (! search_result) {
             	return new MessageResponse(true, `${target} is not a learned pattern`, false)
             }
+            // Remove from database
             (await collection.remove({ target: target }))
-            let new_patterns = []
-            for (const old_pattern of this.patterns) {
-            	if (old_pattern.target != target) {
-            		new_patterns.push(old_pattern)
-            	}
-            }
-            this.patterns = new_patterns
+            // Remove from cache
+            delete this.patterns[target]
             return new MessageResponse(true, `Pattern \`${target}\` has been unlearned`, false)
         } catch (error) {
             winston.error("Error searching database to check if ${session_id} exists")
@@ -113,27 +156,34 @@ class PatternMatcher {
 	}
 
 	// Add a message to the responder
-	addMessage (target, response) {
+	async addMessage (target, response) {
 		const insert_data = {
 			target: target,
 			response: response
 		}
-		this.patterns.push({
+		this.patterns[target] = {
 			target: target,
 			exp: new RegExp(target),
 			response: response
-		})
+		}
 		// Grab the collection form the database
 		const collection = db_mongo.get().collection(this.collection)
-		let result = null
-		collection.insert(insert_data, (err, result) => {
-			if (err) {
-				winston.error(`Error creating new replacement text (${target} -> ${response})`)
-				winston.error(err)
-				result = new MessageResponse(this.errors, this.errors ? `Error creating new replacement text (${target} -> ${response})` : null, false)
+		try {
+			// Upsert into document, replacing if exists
+			const update_result = (await collection.update({target: target}, insert_data, { upsert: true })).result
+			// If there was a created item reply with update message
+			if (update_result.nModified == 1) {
+				return new MessageResponse(true, `Pattern \`${target}\` -> \`${response}\` has been relearned`, false)
 			}
-		})
-		return new MessageResponse(true, `Pattern \`${target}\` -> \`${response}\` has been learned`, false)
+			// If there was an insert reply with that message
+			if (update_result.nUpserted == 1) {
+				return new MessageResponse(true, `Pattern \`${target}\` -> \`${response}\` has been learned`, false)
+			}
+		} catch (err) {
+			winston.error(`Error creating new replacement text (${target} -> ${response})`)
+			winston.error(err)
+		}
+		return new MessageResponse(this.errors, this.errors ? `Error creating pattern \`${target} -> ${response}\`` : null, false)
 	}
 }
 
