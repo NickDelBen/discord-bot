@@ -13,7 +13,7 @@ let bot = new DiscordBot(settings.api_token)
 db_mongo.connect(settings.mongo.url, function(err) {
 
 	// Create the direct responder
-	let matcher = new PatternMatcher("pattern_reactor", "pm", settings.metagroups.users, settings.metagroups.power, false)
+	let matcher = new PatternMatcher("pattern_reactor", "pm", settings.metagroups.users, settings.metagroups.power, settings.gods, false)
 	matcher.addMessage("ping", "pong")
 
 	// Assign the simple responder handler
