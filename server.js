@@ -6,6 +6,7 @@ import { settings } from "./src/helpers"
 import { DiscordBot } from "./src/discord_bot"
 import { PatternMatcher } from "./src/pattern_matcher"
 import { RaffleManager } from "./src/raffler"
+import { NetSecManager } from './src/netsec'
 
 // Create a new bot
 let bot = new DiscordBot(settings.api_token)
@@ -22,6 +23,10 @@ db_mongo.connect(settings.mongo.url, function(err) {
 	// Create the lottery handler
 	let raffler = new RaffleManager("raffle", settings.metagroups.users, settings.metagroups.power, settings.gods, false)
 	bot.addHandler(raffler)
+
+	// Create security functions
+	let securer = new NetSecManager("net")
+	bot.addHandler(securer)
 
 	// Start the bot
 	bot.connect()

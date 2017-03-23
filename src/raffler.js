@@ -209,7 +209,7 @@ class RaffleManager {
 			return this.end(author, channel)
 		}
 		// Reached command error
-		return new MessageResponse(this.errors, `Command \"${prefix}${this.raffle_prefix} ${split_message[1]}\" with ${split_message.length-2} parameters not found`, false)
+		return new MessageResponse(true, raffle_help(), false)
 	}
 
 }
