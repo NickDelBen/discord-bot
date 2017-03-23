@@ -60,7 +60,7 @@ class PatternMatcher {
 	}
 
 	// Handles a text message
-	handleText (message, prefix, roles, author_id) {
+	handleText (message, prefix, roles, author, channel) {
 		// Check if this is an add command
 		if (!(message.startsWith(`${prefix}${this.add_prefix}`))) {
 			if (arr_com(this.replacers, roles)) {
@@ -76,7 +76,7 @@ class PatternMatcher {
 			return new MessageResponse(true, pattern_help(), false)
 		}
 		// Ensure user has permissions
-		if (! (arr_com(this.modifiers, roles) || this.gods.includes(author_id))) {
+		if (! (arr_com(this.modifiers, roles) || this.gods.includes(author.id))) {
 			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
 		}
 		// Check if this is an add command
@@ -92,7 +92,7 @@ class PatternMatcher {
 	}
 
 	// Handle a dm
-	handleDM (message, prefix, author_id, channe_id) {
+	handleDM (message, prefix, author, channel) {
 		// If it is not a valid command ignore
 		if (!(message.startsWith(`${prefix}${this.add_prefix}`))) {
 			return new MessageResponse(false, "Unrelated", false)		
@@ -104,7 +104,7 @@ class PatternMatcher {
 			return new MessageResponse(true, pattern_help(), false)
 		}
 		// Ensure user has permissions
-		if (! this.gods.includes(author_id)) {
+		if (! this.gods.includes(author.id)) {
 			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
 		}
 		// Check if this is an add command

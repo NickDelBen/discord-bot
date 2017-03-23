@@ -14,9 +14,12 @@
     "babel-preset-latest": "6.16.0",
     "babel-preset-react": "6.16.0",
     "babelify": "7.3.0",
-    "discord.js": "11.0.0",
+    "discord.js": "github:hydrabolt/discord.js#9aba3a1e843936a637b01df10446fe6a4b66677e",
+    "dn": "0.1.5",
     "mongodb": "2.2.19",
-    "winston": "2.3.1"
+    "whois": "2.3.8",
+    "winston": "2.3.1",
+    "validate-ip-node": "1.0.6"
   },
   "author": "Nick DelBen",
   "license": "ISC"
