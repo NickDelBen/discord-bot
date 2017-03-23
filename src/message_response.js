@@ -10,7 +10,7 @@ class MessageResponse {
 	}
 
 	// Send a respone message
-	async sendMessage (client, channel=null) {
+	async sendMessage (client, channel) {
 		// If no type use chanel type
 		if ((! this.type) && channel) {
 			this.type = channel.type
@@ -20,23 +20,26 @@ class MessageResponse {
 			case "dm": {
 				// If a target is specified send to the target user
 				if (this.target) {
-					return (await client.fetchUser(this.target)).sendMessage(this.response)
+					const target_user = await client.fetchUser(this.target)
+					return target_user.sendMessage(this.response)
 				}
 				// If no target but a channel send over specified channel
 				if (channel) {
 					return channel.sendMessage(this.response)
 				}
+				break
 			} 
 			// Send message to a channel
 			case "text": {
 				// If a target is specified send to target channel
 				if (this.target) {
-					(await client.channels.get(this.target)).sendMessage(this.response)
+					return (await client.channels.get(this.target)).sendMessage(this.response)
 				}
 				// If no target but a channel send over specified channel
 				if (channel) {
-					channel.sendMessage(this.response)
+					return channel.sendMessage(this.response)
 				}
+				break
 			}
 			// Error
 			default: {

@@ -7,8 +7,7 @@ import { block_text } from "./discord_messages"
 // Help text for the pattern matcher
 const pattern_help = function () {
 	return block_text(
-`Pattern Matching module by MartianProblems
-Responds with specified messages when patterns are detected
+`Responds with specified messages when patterns are detected
     pm help                          [DM/channel] This help text
     pm add "<pattern>" "<response>"  [DM/channel] Create a new pattern-response pair
     pm rm "<pattern>"                [DM/channel] Remove an existing pattern-response pair`)
@@ -63,7 +62,7 @@ class PatternMatcher {
 	// Handles a text message
 	handleText (message, prefix, roles, author_id) {
 		// Check if this is an add command
-		if (!(message.startsWith(`${prefix} ${this.add_prefix}`))) {
+		if (!(message.startsWith(`${prefix}${this.add_prefix}`))) {
 			if (arr_com(this.replacers, roles)) {
 				// Check if this message is one of the targets
 				return this.checkMessage(message)
@@ -73,7 +72,7 @@ class PatternMatcher {
 		// Split the message like command line args
 		const split_message = message.match(/(".*?"|[^\s]+)+(?=\s*|\s*$)/g)
 		// Check if this is a blank or help command
-		if (split_message.length == 2 || split_message[2] == "help") {
+		if (split_message.length == 1 || split_message[1] == "help") {
 			return new MessageResponse(true, pattern_help(), false)
 		}
 		// Ensure user has permissions
@@ -81,27 +80,27 @@ class PatternMatcher {
 			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
 		}
 		// Check if this is an add command
-		if (split_message[2] == "add" && split_message.length >= 5) {
-			return this.addMessage(split_message[3].replace(/['"']+/g, ''), split_message[4].replace(/['"']+/g, ''))
+		if (split_message[2] == "add" && split_message.length >= 4) {
+			return this.addMessage(split_message[2].replace(/['"']+/g, ''), split_message[3].replace(/['"']+/g, ''))
 		}
 		// Check if this is a remove command
-		if (split_message[2] == "rm" && split_message.length >= 4) {
-			return this.removeMessage(split_message[3].replace(/['"']+/g, ''))
+		if (split_message[2] == "rm" && split_message.length >= 3) {
+			return this.removeMessage(split_message[2].replace(/['"']+/g, ''))
 		}
 		// Reached command error
-		return new MessageResponse(this.errors, `Command \"${prefix} ${this.add_prefix} ${split_message[2]}\" with ${split_message.length-3} parameters not found`, false)
+		return new MessageResponse(this.errors, `Command \"${prefix}${this.add_prefix} ${split_message[1]}\" with ${split_message.length-2} parameters not found`, false)
 	}
 
 	// Handle a dm
-	handleDM (message, prefix, author_id) {
+	handleDM (message, prefix, author_id, channe_id) {
 		// If it is not a valid command ignore
-		if (!(message.startsWith(`${prefix} ${this.add_prefix}`))) {
+		if (!(message.startsWith(`${prefix}${this.add_prefix}`))) {
 			return new MessageResponse(false, "Unrelated", false)		
 		}
 		// Split the message like command line args
 		const split_message = message.match(/(".*?"|[^\s]+)+(?=\s*|\s*$)/g)
 		// Check if this is a blank or help command
-		if (split_message.length == 2 || split_message[2] == "help") {
+		if (split_message.length == 1 || split_message[1] == "help") {
 			return new MessageResponse(true, pattern_help(), false)
 		}
 		// Ensure user has permissions
@@ -109,15 +108,15 @@ class PatternMatcher {
 			return new MessageResponse(this.errors, `You do not have permission to modify reactions`, false)
 		}
 		// Check if this is an add command
-		if (split_message[2] == "add" && split_message.length >= 5) {
-			return this.addMessage(split_message[3].replace(/['"']+/g, ''), split_message[4].replace(/['"']+/g, ''))
+		if (split_message[2] == "add" && split_message.length >= 4) {
+			return this.addMessage(split_message[2].replace(/['"']+/g, ''), split_message[3].replace(/['"']+/g, ''))
 		}
 		// Check if this is a remove command
-		if (split_message[2] == "rm" && split_message.length >= 4) {
-			return this.removeMessage(split_message[3].replace(/['"']+/g, ''))
+		if (split_message[2] == "rm" && split_message.length >= 3) {
+			return this.removeMessage(split_message[2].replace(/['"']+/g, ''))
 		}
 		// Reached command error
-		return new MessageResponse(this.errors, `Command \"${prefix} ${this.add_prefix} ${split_message[2]}\" with ${split_message.length-3} parameters not found`, false)
+		return new MessageResponse(this.errors, `Command \"${prefix}${this.add_prefix} ${split_message[1]}\" with ${split_message.length-2} parameters not found`, false)
 	}
 
 	// Check if a message should be replaced by the responder

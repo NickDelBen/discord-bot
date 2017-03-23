@@ -54,14 +54,14 @@ class DiscordBot {
 				// Check for text messages
 				case "text": {
 					if (handler.messageTypes.includes("text")) {
-						handler_result = (await handler.handleText(message.content, settings.prefix, user_roles, message.author.id))
+						handler_result = (await handler.handleText(message.content, settings.prefix, user_roles, message.author, message.channel))
 					}
 					break
 				}
 				// Check for dms
 				case "dm": {
 					if (handler.messageTypes.includes("dm")) {
-						handler_result = (await handler.handleDM(message.content, settings.prefix, message.author.id))
+						handler_result = (await handler.handleDM(message.content, settings.prefix, message.author, message.channel))
 					}
 					break
 				}
@@ -70,10 +70,11 @@ class DiscordBot {
 			if (! (handler_result instanceof Array)) {
 				handler_result = [ handler_result ]
 			}
-			for (const handler_message of handler_result) {
+			for (let handler_i = 0; handler_i < handler_result.length; handler_i++) {
+				let handler_message = handler_result[handler_i]
 				// If we found a result we can reply
 				if (handler_message.result) {
-					return handler_message.sendMessage(this.client, message.channel)
+					handler_message.sendMessage(this.client, message.channel)
 				}
 			}
 		}
