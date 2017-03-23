@@ -15,6 +15,7 @@ services:
       - ../conf/app/:/var/app_conf/
     networks:
       - discord_bot
+    restart: always
 
   # mongodb container
   database:
@@ -26,6 +27,7 @@ services:
       - ../logs/:/var/logs/
     networks:
       - discord_bot
+    restart: always
 
 networks:
   discord_bot:
