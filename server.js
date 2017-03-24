@@ -7,6 +7,7 @@ import { DiscordBot } from "./src/discord_bot"
 import { PatternMatcher } from "./src/pattern_matcher"
 import { RaffleManager } from "./src/raffler"
 import { NetSecManager } from './src/netsec'
+import { ChatTools } from "./src/chat_tools"
 
 // Create a new bot
 let bot = new DiscordBot(settings.api_token)
@@ -27,6 +28,10 @@ db_mongo.connect(settings.mongo.url, function(err) {
 	// Create security functions
 	let securer = new NetSecManager("net")
 	bot.addHandler(securer)
+
+	// Create chat tools
+	let tooler = new ChatTools("")
+	bot.addHandler(tooler)
 
 	// Start the bot
 	bot.connect()

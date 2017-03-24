@@ -19,6 +19,7 @@
     "mongodb": "2.2.19",
     "whois": "2.3.8",
     "winston": "2.3.1",
+    "mw-dictionary": "0.0.5",
     "validate-ip-node": "1.0.6"
   },
   "author": "Nick DelBen",
