@@ -16,6 +16,7 @@
     "babelify": "7.3.0",
     "discord.js": "github:hydrabolt/discord.js#9aba3a1e843936a637b01df10446fe6a4b66677e",
     "dn": "0.1.5",
+    "node-fetch": "1.6.3",
     "mongodb": "2.2.19",
     "whois": "2.3.8",
     "winston": "2.3.1",

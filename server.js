@@ -1,4 +1,5 @@
 
+// https://discordapp.com/oauth2/authorize?&client_id=<CLIENTID>&scope=bot&permissions=0
 const winston = require("winston")
 
 import db_mongo from './src/db_mongo'
@@ -30,7 +31,7 @@ db_mongo.connect(settings.mongo.url, function(err) {
 	bot.addHandler(securer)
 
 	// Create chat tools
-	let tooler = new ChatTools("")
+	let tooler = new ChatTools("eng")
 	bot.addHandler(tooler)
 
 	// Start the bot
