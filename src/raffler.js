@@ -87,14 +87,13 @@ class RaffleManager {
 		}
 		// Check if the user has already entered the raffle
 		if (this.items[this.current_draws[channel.id]].entries[enterer.id]) {
-			return new MessageResponse(true, block_text("You have already entered this raffle"), false, "dm", enterer)
+			return new MessageResponse(true, block_text("You have already entered this raffle"), false, "dm", enterer.id)
 		}
 		// Add this user to the raffle
 		this.items[this.current_draws[channel.id]].entries[enterer.id] = enterer
 		return [
-			new MessageResponse(true, `@${enterer.username} has entered the raffle. The raffle now has ${Object.keys(this.items[this.current_draws[channel.id]].entries).length} entries`, false, "text", channel),
+			new MessageResponse(true, `<@${enterer.id}> has entered the raffle. The raffle now has ${Object.keys(this.items[this.current_draws[channel.id]].entries).length} entries`, false, "text", channel.id),
 			new MessageResponse(true, "You have been entered to win a lottery. Good Luck!", false, "dm", enterer.id)
-
 		]
 	}
 
@@ -102,17 +101,26 @@ class RaffleManager {
 	end (raffler, channel) {
 		// Check if there is a raffle this user can end
 		if (!(this.current_draws[channel.id]) || (this.current_draws[channel.id] != raffler.id)) {
-			return new MessageResponse(true, block_text("You do not ahve a raffle that you can end."), true)
+			return new MessageResponse(true, block_text("You do not have a raffle that you can end."), true)
 		}
 		// Select winner
 		let raffle_item = this.items[this.current_draws[channel.id]]
 		const winner_options = Object.keys(raffle_item.entries)
-		const raffle_winner = this.items[winner_options[Math.floor(Math.random() * winner_options.length)]]
+		// Ensure there were entries to the raffle
+		if (winner_options.length == 0) {
+			return [
+				new MessageResponse(true, "The raffle has ended but there were no entries", false, "text", raffle_item.channel.id),
+				new MessageResponse(true, "Your raffle has ended and there were no entries", false, "dm", raffler.id)
+			]
+		}
+		const raffle_winner = raffle_item.entries[winner_options[Math.floor(Math.random() * winner_options.length)]]
 		return [
-			new MessageResponse(true, `The raffle has ended and @${raffle_winner.username} is the winner!`, false, "text", raffle_item.channel.id),
-			new MessageResponse(true, `Your raffle has ended and @${raffle_winner.username}  has won.\bThey have been messasged the win text.`, false, "dm", raffler.id),
+			new MessageResponse(true, `The raffle has ended and <@${raffle_winner.id}> is the winner!\nCheck your dm for the prize`, false, "text", raffle_item.channel.id),
+			new MessageResponse(true, `Your raffle has ended and ${raffle_winner.username} (<@${raffle_winner.id}>)  has won.\bThey have been messasged the win text.`, false, "dm", raffler.id),
 			new MessageResponse(true, `You have won a raffle. The host of the raffle says:\n${raffle_item.reward}\nCongratulations!`, false, "dm", raffle_winner.id)
 		]
+		delete this.current_draws[channel.id]
+		delete this.items[raffler.id]
 	}
 
 	// Get the infor about a raffle
@@ -135,7 +143,7 @@ class RaffleManager {
 			return new MessageResponse(true, "You have already started a raffle. You can end your raffle with `raffle end`", false)
 		}
 		// Modify the raffle in the storage
-		this.items[raffler].channel = channel.id
+		this.items[raffler.id].channel = channel.id
 		// Add to the ongoing list
 		this.current_draws[channel.id] = raffler.id
 		return [
@@ -185,7 +193,7 @@ class RaffleManager {
 	}
 
 	// Handles a dm message
-	handleDM (message, prefix, author_id, channel_id) {
+	handleDM (message, prefix, author, channel) {
 		// If it is not a valid command ignore
 		if (!(message.startsWith(`${prefix}${this.raffle_prefix}`))) {
 			return new MessageResponse(false, "Unrelated", false)		

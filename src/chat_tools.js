@@ -17,26 +17,6 @@ const dict = new Dictionary({
 	key: settings.dictionary.key
 });
 
-//sample method
-// dict.define(process.argv[3], function(error, result){
-// 	if (error == null) {
-// 		for(var i=0; i<result.length; i++){
-// 			console.log(i+'.');
-// 			console.lookupg('Part of speech: '+result[i].partOfSpeech);
-// 			console.log('Definitions: '+result[i].definition);
-// 			console.log(result[i].definition)
-// 		}
-// 	}
-// 	else if (error === "suggestions"){
-// 		console.log(process.argv[3] + ' not found in dictionary. Possible suggestions:');
-// 		for (var i=0; i<result.length; i++){
-// 			console.log(result[i]);
-// 		}
-// 	}
-// 	else console.log(error);
-// });
-
-
 class ChatTools {
 	// Creates a new netsec manager
 	constructor (chat_prefix) {
@@ -182,9 +162,9 @@ class ChatTools {
 			return this.define(split_message[2])
 		}
 		// check if was a rhyme lookup
-		if (split_message[1] == "rhyme" && split_message.length >= 3) {
-			return this.rhyme(split_message[2])
-		}
+		// if (split_message[1] == "rhyme" && split_message.length >= 3) {
+		// 	return this.rhyme(split_message[2])
+		// }
 		return new MessageResponse(false, chat_help(), false)
 	}
 
