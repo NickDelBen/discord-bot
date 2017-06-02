@@ -1,7 +1,9 @@
 const winston = require("winston")
 import Discord from "discord.js"
+import discord_music from "discord.js-music-v11"
 
 import { settings } from "./helpers"
+
 
 class DiscordBot {
 	// Create a new discord bot
@@ -17,6 +19,14 @@ class DiscordBot {
 		this.handlers = []
 		// Checks for paginated messages
 		this.paginated = {}
+	}
+
+	// Add music to discord bot
+	addMusic (prefix) {
+		discord_music(this.client, {
+			prefix: prefix,
+			global: false
+		})
 	}
 
 	// Add the specified commands to the command set
@@ -86,6 +96,7 @@ class DiscordBot {
 				}
 				// Check for dms
 				case "dm": {
+					console.log(message)
 					if (handler.messageTypes.includes("dm")) {
 						handler_result = (await handler.handleDM(message.content, settings.prefix, message.author, message.channel))
 					}

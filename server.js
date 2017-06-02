@@ -9,9 +9,11 @@ import { PatternMatcher } from "./src/pattern_matcher"
 import { RaffleManager } from "./src/raffler"
 import { NetSecManager } from './src/netsec'
 import { ChatTools } from "./src/chat_tools"
+import { BigBrother } from "./src/big_brother"
 
 // Create a new bot
 let bot = new DiscordBot(settings.api_token)
+bot.addMusic(`${settings.prefix}mu `)
 
 // Connect to mongo db
 db_mongo.connect(settings.mongo.url, function(err) {
@@ -32,6 +34,10 @@ db_mongo.connect(settings.mongo.url, function(err) {
 	// Create chat tools
 	let tooler = new ChatTools("eng")
 	bot.addHandler(tooler)
+
+	// Add big brother watcher
+	let brother = new BigBrother("bro", settings.metagroups.users, settings.metagroups.power, settings.gods, true)
+	bot.addHandler(brother)
 
 	// Start the bot
 	bot.connect()
