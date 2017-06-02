@@ -18,16 +18,16 @@ services:
     restart: always
 
   # mongodb container
-  database:
-    build:
-      context: .
-      dockerfile: mongo.dockerfile
-    volumes:
-      - ../db/mongo/:/data/db/
-      - ../logs/:/var/logs/
-    networks:
-      - discord_bot
-    restart: always
+  # database:
+  #   build:
+  #     context: .
+  #     dockerfile: mongo.dockerfile
+  #   volumes:
+  #     - ../db/mongo/:/data/db/
+  #     - ../logs/:/var/logs/
+  #   networks:
+  #     - discord_bot
+  #   restart: always
 
 networks:
   discord_bot:
